@@ -59,6 +59,10 @@ func getExtrato(db *pgxpool.Pool) func(*fiber.Ctx) error {
 
 		ctx := c.Context()
 		id := c.Params("id")
+		if id != "1" && id != "2" && id != "3" && id != "4" && id != "5" {
+			return c.SendStatus(404)
+		}
+
 		rows, err := db.Query(ctx, pegaSaldo, id)
 		if err != nil {
 			return err
@@ -117,6 +121,11 @@ func postTransacao(db *pgxpool.Pool) func(*fiber.Ctx) error {
 			return c.SendStatus(422)
 		}
 
+		id := c.Params("id")
+		if id != "1" && id != "2" && id != "3" && id != "4" && id != "5" {
+			return c.SendStatus(404)
+		}
+
 		ctx := c.Context()
 		tx, err := db.Begin(ctx)
 		if err != nil {
@@ -125,7 +134,6 @@ func postTransacao(db *pgxpool.Pool) func(*fiber.Ctx) error {
 		defer tx.Rollback(ctx)
 
 		var limite, saldo int
-		id := c.Params("id")
 		if err = tx.QueryRow(ctx, pegaSaldoAtualizar, id).Scan(&limite, &saldo); err != nil {
 			if err.Error() == pgx.ErrNoRows.Error() {
 				return c.SendStatus(404)
