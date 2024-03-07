@@ -3,37 +3,36 @@ version: '3.8'
 services:
   postgres:
     container_name: rinha_db
-    image: postgres:16.2
+    image: postgres:alpine
     hostname: postgres
     ports:
       - 5432:5432
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: postgres -c 'max_connections=100' -c 'shared_buffers=200MB' -c 'fsync=off' -c 'effective_cache_size=512MB' -c 'synchronous_commit=off' -c 'checkpoint_timeout=1d' -c 'max_wal_size=1GB' -c 'full_page_writes=false'
     environment:
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_DB=postgres
-    command: postgres -c max_connections=1000 -c max_wal_size=4096 -c checkpoint_timeout=600 -c synchronous_commit=off -c effective_cache_size=225MB -c shared_buffers=75MB -c fsync=off -c huge_pages=off -c work_mem=100MB -c maintenance_work_mem=256MB -c effective_io_concurrency=4
+      - POSTGRES_HOST_AUTH_METHOD=trust
     deploy:
       resources:
         limits:
-          cpus: '0.75'
-          memory: '350MB'
+          cpus: '0.7'
+          memory: '420MB'
 
   api1: &api
     build: .
     container_name: rinha_api_1
     hostname: api1
+    ulimits:
+      nofile:
+        soft: 1000000
+        hard: 1000000    
     depends_on:
       - postgres
-    environment:
-      - GOMAXPROCS=1
-      - GOMEMLIMIT=75MiB
     deploy:
       resources:
         limits:
-          cpus: '0.25'
-          memory: '75MB'
+          cpus: '0.3'
+          memory: '45MB'
 
   api2:
     <<: *api
@@ -41,7 +40,7 @@ services:
     hostname: api2
 
   nginx:
-    image: nginx
+    image: nginx:latest
     container_name: rinha_proxy
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
@@ -53,5 +52,5 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.25'
-          memory: '50MB'
+          cpus: '0.2'
+          memory: '40MB'

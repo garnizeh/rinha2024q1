@@ -1,4 +1,4 @@
-FROM golang:1.22-alpine AS build
+FROM golang:1.22.1-alpine AS build
 RUN apk update && apk upgrade && apk add --no-cache bash openssh dumb-init
 WORKDIR /app
 COPY go.mod go.sum main.go ./
